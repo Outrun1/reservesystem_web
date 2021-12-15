@@ -1,0 +1,185 @@
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">用户姓名</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="username" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary"  lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="currentTableBar">
+            {{# if(d.todayUp>0){  }}
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="todayUp">上午</a>
+            {{# } }}
+
+            {{# if(d.todayDown>0){  }}
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="todayDown">下午</a>
+            {{# } }}
+
+            {{# if(d.todayUp==0 && d.todayDown==0){  }}
+            <button type="button" class="layui-btn layui-btn-disabled">无号</button>
+            {{# } }}
+
+        </script>
+
+        <script type="text/html" id="currentTableBar2">
+            {{# if(d.tomUp>0){  }}
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="tomUp">上午</a>
+            {{# } }}
+
+            {{# if(d.tomDown>0){  }}
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="tomDown">下午</a>
+            {{# } }}
+
+            {{# if(d.tomDown==0 && d.tomUp==0){  }}
+            <button type="button" class="layui-btn layui-btn-disabled">无号</button>
+            {{# } }}
+
+        </script>
+
+
+
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+    </div>
+</div>
+
+<script>
+    layui.use(['form', 'table','miniPage','element', 'axios'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            miniPage = layui.miniPage;
+        var axios = layui.axios;
+     //重新加载 table
+        window.reload=function(){
+            table.reload('currentTableId');
+        }
+
+
+        //获取今天
+        var day=new Date();
+        var titleName=getCurrentDate(day)+"(今天)";
+        //获取明天
+        var day2=new Date();
+        day2.setTime(day2.getTime()+60*1000*60*24);
+        var titleName2=getCurrentDate(day2)+"(明天)";
+         console.log(localStorage.getItem("deptId"))
+        table.render({
+            elem: '#currentTableId',
+            url: 'http://localhost:9999/user/queryUserAll3',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            cols: [[
+                {type: "checkbox", width: 50},
+                {field: 'id', width: 100, title: 'ID', sort: true},
+                {field: 'username', width: 120, title: '医生姓名'},
+                {field: 'sex', width: 80, title: '性别'},
+                {field: 'jobTitle', width: 120, title: '职称'},
+                {field: 'email', width: 150, title: '邮箱'},
+                {title: titleName, minWidth: 200, toolbar: '#currentTableBar', align: "center"},
+                {title: titleName2, minWidth: 200, toolbar: '#currentTableBar2', align: "center"}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 15,
+            page: true,
+            skin: 'line',
+            where:{
+                deptId: localStorage.getItem("deptId")
+            }
+        });
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            var username=data.field.username;
+            //执行搜索重载
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: {
+                    username: username
+                }
+            }, 'data');
+
+            return false;
+        });
+
+
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            console.log(obj)
+        });
+
+
+        //添加预约
+        function addOrder(datas){
+            axios.post('order/add2',datas).then(function(response){
+                if(response.data.code==200){
+                    layer.msg(response.data.msg);
+                    //重新加载表格
+                    window.reload()
+                }
+            })
+        }
+
+
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            var datas={};
+            datas.userId=data.id;
+
+            if (obj.event === 'todayUp') {
+                layer.confirm('确定要预约吗？', function (index) {
+                    datas.dayTime="am";
+                    datas.day="today";
+                    addOrder(datas);
+                    return false;
+                });
+            } else if (obj.event === 'todayDown') {
+                layer.confirm('确定要预约吗？', function (index) {
+                    datas.dayTime="pm";
+                    datas.day="today";
+                    addOrder(datas);
+                    return false;
+                });
+            }else if (obj.event === 'tomUp') {
+                layer.confirm('确定要预约吗？', function (index) {
+                    datas.dayTime="am";
+                    datas.day="tom";
+                    addOrder(datas);
+                    return false;
+                });
+            }
+            else if (obj.event === 'tomDown') {
+                layer.confirm('确定要预约吗？', function (index) {
+                    datas.dayTime="pm";
+                    datas.day="tom";
+                    addOrder(datas);
+                    return false;
+                });
+            }
+        });
+
+    });
+</script>

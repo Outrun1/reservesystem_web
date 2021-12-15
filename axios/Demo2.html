@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<script>
+   axios({
+       url:"http://localhost:9999/user/queryAll",
+       method: 'post',
+       params:{id:1}
+   }).then(res=>{
+       console.log(res.data);
+   }).catch(err=>{
+       console.log(err);
+   });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+<div class="layuimini-main">	
+    <div class="layui-form layuimini-form"  lay-filter="updateForm">
+    	<input type="hidden" name="userId"  id="id"/>
+    	<input type="hidden" name="day"  id="day"/>
+        <div class="layui-form-item">
+        <label class="layui-form-label required">上午人数</label>
+        <div class="layui-input-block">
+            <input type="number" name="am"  id="am" lay-verify="required"  class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label ">下午人数</label>
+        <div class="layui-input-block">
+            <input type="number" name="pm"  id="pm"  class="layui-input">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="updateForm">确认修改</button>
+        </div>
+    </div>
+    </div>
+</div>
+<script>
+    layui.use(['form', 'axios', 'table'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            table = layui.table,
+            axios = layui.axios,
+            
+            $ = layui.$;
+
+        // 当前弹出层，防止ID被覆盖
+        var parentIndex = layer.index;
+
+        //监听提交
+        form.on('submit(updateForm)', function (data) {
+             var datas=data.field;
+             axios.post('work/update',datas).then(function(response){
+                if(response.data.code==200){
+                    layer.msg(response.data.msg);
+                    //重新加载表格
+                    window.reload()
+                }
+                //关闭弹出页面
+                layer.close(parentIndex);
+            })
+
+            return false;
+        });
+
+    });
+</script>

@@ -1,0 +1,127 @@
+
+<div class="layuimini-main">
+    <input type="hidden" id="userId" name="userId">
+    <div id="div_name"></div>
+</div>
+
+<script>
+    layui.use(['form', 'table','miniPage','element', 'axios'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table,
+            miniPage = layui.miniPage;
+        var axios = layui.axios;
+
+        //根据时间获取当天记录信息
+        function setFormValues(day) {
+            var userID = $("#userId").val();
+            axios.post('work/queryListByUserIdAndDay', {userId:userID,day:day}).then(function (response) {
+                var data=response.data;
+                $("#id").val(userID);
+                $("#am").val(data.am);
+                $("#pm").val(data.pm);
+                $("#day").val(day);
+            })
+        };
+
+
+
+
+
+        function getUrlParam(param) {
+            var reg = new RegExp("(^|&)" + param + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+            var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+            if (r != null) return decodeURI(r[2]); return null; //返回参数值
+        }
+
+
+
+        $("#div_name").fullCalendar(
+            {
+                header: {
+                    left: 'prev today next',
+                    center: 'title',
+                    // right: 'agendaWeek,agendaDay'
+                    right: 'month,agendaWeek,agendaDay'
+                },
+                monthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+                monthNamesShort: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+                dayNames: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+                dayNamesShort: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+                today: ["今天"],
+                buttonText:{//设置日历头部各按钮的显示文本信息
+                    today:    '今天/本周',
+                    month:    '月',
+                    week:     '周',
+                    day:      '日'
+                },
+                axisFormat: 'H(:mm)',
+                defaultView:'month',
+                allDaySlot:true,
+                allDayText:'全天',
+                editable: false,//不能进行编辑
+                events:function(start, end, timezone, callback) {//ajax请求数据并显示在响应时间段内
+
+                     debugger
+
+                    // var id=$("#userId").val();
+                    var id=localStorage.getItem("docId");
+                    axios.post('work/queryListByUserID', {userId: id}).then(function (response) {
+                           //把拿到的信息放入events对象中去
+                            var data=response.data;
+                            var events=[];
+                            for(let item in data){
+                                events.push({
+                                    title: data[item].title,
+                                    start: data[item].day , // will be parsed
+                                    date:data[item].date,
+                                    color: '#B4EABE',
+                                    display: 'background'
+                                });
+                            }
+                        callback(events)
+                    })
+
+
+                },
+
+                dayClick: function(date, allDay, jsEvent, view) {//点击空白处，添加信息
+                    var day=date.format('YYYY-MM-DD');
+                    var content = miniPage.getHrefContent('page/work/update.html');
+                    var index = layer.open({
+                        title: '修改当天预约数据',
+                        type: 1,
+                        shade: 0.2,
+                        maxmin:true,
+                        shadeClose: true,
+                        area: ['60%', '60%'],
+                        content: content,
+                    });
+                    //渲染信息
+                    setFormValues(day);
+                    $(window).on("resize", function () {
+                        layer.full(index);
+                    });
+                    return false;
+
+                },
+                eventClick:function(event){//查看事件
+                    var d = dialog({title:"查看教育场地申请",id:"prisonAnaly_detail_dialog",parent:$dialogParent(),
+                        content:'' ,//"url:${base}/education/eduSiteApply.do?detail&id=" + event.id,
+                        cancelVal: "关闭",cancel: true ,width: "500px",height: "300px",lock:true
+                    });
+                    d.showModal();
+                }
+            }
+        );
+
+        //重载
+        window.reload = function(){
+            $("#div_name").fullCalendar("refetchEvents");
+        }
+
+    });
+    // })(jQuery);
+</script>
+</body>
+</html>

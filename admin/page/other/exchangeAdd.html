@@ -1,0 +1,88 @@
+<div class="layuimini-main">	
+    <div class="layui-form layuimini-form">
+
+
+<!--    <div class="layui-form-item">-->
+<!--        <label class="layui-form-label ">医生姓名：</label>-->
+<!--                <div class="layui-input-block">-->
+<!--                <select name="userId" lay-verify="required"  id="userId" lay-search="">-->
+<!--                    <option value="">选择医生</option>-->
+<!--                </select>-->
+<!--        </div>-->
+<!--    </div>    -->
+     <div class="layui-form-item">
+        <label class="layui-form-label">开始时间：</label>
+        <div class="layui-input-block">
+                <input type="text" id="date" name="startTime" lay-verify="date" placeholder="yyyy-MM-dd" autocomplete="off" class="layui-input">
+            </div>
+     </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">结束时间：</label>
+            <div class="layui-input-block">
+                <input type="text" id="date2" name="endTime" lay-verify="date" placeholder="yyyy-MM-dd" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+     
+
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">调休申报</button>
+        </div>
+    </div>
+    </div>
+</div>
+<script>
+    layui.use(['form', 'axios', 'treeSelect','table','laydate'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            table = layui.table,
+            axios = layui.axios,
+            laydate=layui.laydate,
+            $ = layui.$;
+            var treeSelect= layui.treeSelect;
+              // 日期
+        laydate.render({
+            elem: '#date',
+            trigger:'click'
+        });
+
+        laydate.render({
+            elem: '#date2',
+            trigger:'click'
+        });
+        form.render();
+
+        //
+        // //渲染 医生信息
+        // axios.post('user/queryUserInfoAll',{}).then(function(res){
+        //     res.data.forEach(item=>{
+        //         let option =`<option value="${item.id}">${item.username},${item.jobTitle}</option>`
+        //         $('#userId').append(option);
+        //     })
+        //     form.render();
+        // });
+
+        var parentIndex = layer.index;
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            var data=data.field;
+            axios.post('exchange/add2',data).then(function(response){
+                if(response.data.code==200){
+                    layer.msg(response.data.msg);
+                    //重新加载表格
+                    window.reload()
+                }
+                //关闭弹出页面
+                layer.close(parentIndex);
+            }).catch(err=> {
+                    console.log(err);
+                }
+            );
+            return false;
+        });
+
+
+    });
+</script>

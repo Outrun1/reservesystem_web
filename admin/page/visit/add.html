@@ -1,0 +1,131 @@
+<div class="layuimini-main">	
+	
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+  <legend>就诊时间线</legend>
+</fieldset>
+
+<ul class="layui-timeline"  id="view">
+    <script id="demo" type="text/html">
+        {{#  layui.each(d, function(index, item){ }}
+          <li class="layui-timeline-item">
+            <i class="layui-icon layui-timeline-axis"></i>
+            <div class="layui-timeline-content layui-text">
+              <h3 class="layui-timeline-title">{{item.dayTime}}</h3>
+              <p>
+                  {{item.descInfo}}.
+                <br> {{item.recipelInfo}}。
+                <br> {{item.remarks}}<i class="layui-icon"></i>
+              </p>
+            </div>
+          </li>
+        {{#  }) }}
+    </script>
+
+  <li class="layui-timeline-item">
+    <i class="layui-icon layui-timeline-axis"></i>
+    <div class="layui-timeline-content layui-text">
+      <div class="layui-timeline-title">在此之前没有问诊记录....</div>
+    </div>
+  </li>
+
+</ul>  
+	
+    <div class="layui-form layuimini-form" lay-filter="saveBtn">
+ 	    <input type="hidden" name="userId"  id="userId"/>
+    	<input type="hidden" name="patientId"  id="parentId"/>
+       <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">病因描述</label>
+            <div class="layui-input-block">
+                <textarea name="descInfo" class="layui-textarea" placeholder="请输入备注信息"></textarea>
+            </div>
+        </div>
+       <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">病情处理</label>
+            <div class="layui-input-block">
+                <textarea name="recipelInfo" class="layui-textarea" placeholder="请输入备注信息"></textarea>
+            </div>
+        </div>
+         <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">备注信息</label>
+            <div class="layui-input-block">
+                <textarea name="remarks" class="layui-textarea" placeholder="请输入备注信息"></textarea>
+            </div>
+        </div>
+     
+     <div class="layui-form-item">
+        <label class="layui-form-label">是否复诊：</label>
+        <div class="layui-input-block">
+             <select name="status" lay-verify="required"   >
+                    <option value="1">是</option>
+                     <option value="0">不是</option>
+              </select>
+        </div>
+     </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认保存</button>
+        </div>
+    </div>
+    </div>
+</div>
+<script>
+    layui.use(['form', 'element','laytpl','axios', 'table','laydate'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            table = layui.table,
+            axios = layui.axios,
+            laydate=layui.laydate,
+            $ = layui.$;
+            var laytpl = layui.laytpl;
+        var element = layui.element;
+
+      
+           form.render();
+
+        // function getQueryString(name) {
+        //     var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+        //     var r = window.location.search.substr(1).match(reg);
+        //     if (r != null) {
+        //         return unescape(r[2]);
+        //     }
+        //     return null;
+        // }
+
+        var userId= $("#userId").val();
+
+            axios.get('record/queryRecordInfoAllById?id='+userId,{}).then(function(response){
+                debugger
+                var data=response.data;
+                var getTpl = demo.innerHTML
+                    ,view = document.getElementById('view');
+                laytpl(getTpl).render(data, function(html){
+                    view.innerHTML = html;
+                });
+                //重新加载当前页
+                element.init();
+            })
+
+
+
+        // 当前弹出层，防止ID被覆盖
+        var parentIndex = layer.index;
+
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+             var datas=data.field;
+             axios.post('record/add',datas).then(function(response){
+                if(response.data.code == 200){
+                    layer.msg(response.data.msg);
+                    window.reload();                   
+                }
+                layer.close(parentIndex);
+            }).catch(function (error) {
+                layer.msg(error);
+            });
+            return false;
+
+        });
+
+    });
+</script>
